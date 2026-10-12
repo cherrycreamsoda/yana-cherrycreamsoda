@@ -39,7 +39,7 @@
 1. YANA, Yet Another Notes App (competes with Bear / bear.app)
 │
 ├── 2. Core Experience
-│   ├── Seamless Markdown
+│   ├── Seamless Markdown (mandatory CommonMark, GFM, required extensions and YANA syntax; see 2.1)
 │   ├── File-like structure for notes
 │   │   └── Shown in the sidebar (see 3)
 │   ├── Editor toolbar (in the content area)
@@ -153,8 +153,38 @@ Around that core, the app provides an editor toolbar with all the formatting opt
 ### 2.1 Seamless Markdown (MD)
 
 - Notes are written in **Markdown** with a **seamless** experience: writing and formatting happen in one flow, with no clunky switch between "edit" and "preview" modes.
+- The required syntax scope is **all features listed below**. These are product requirements, not optional extensions. Implementation may be staged, but no item is excluded from the intended Markdown capability.
+- **Roadmap status:** Markdown support is planned and is not part of the current plain-text editor baseline. This list describes the target for a future Markdown-editor milestone.
+- **CommonMark**
+  - ATX headings (`#` through `######`) and setext headings (`===` / `---` underlines).
+  - Emphasis: italic, bold, and combined bold-italic.
+  - Paragraphs and soft/hard line breaks, including two trailing spaces and backslash line breaks.
+  - Blockquotes, including nested blockquotes.
+  - Unordered and ordered lists, including nested lists and multi-paragraph list items.
+  - Inline code and indented or fenced code blocks, including language identifiers.
+  - Inline links, reference-style links, and angle-bracket autolinks.
+  - Images with alt text.
+  - Horizontal rules, backslash escapes, and inline/block raw HTML.
+- **GitHub Flavored Markdown (GFM)**
+  - Tables with column alignment.
+  - Task lists with checked and unchecked states.
+  - Strikethrough and bare-URL autolinking.
+- **Additional required Markdown extensions**
+  - Footnotes; inline and block math; highlighted text; subscript and superscript.
+  - YAML frontmatter.
+  - Wiki-links using `[[Note Title]]`.
+  - Mermaid diagrams in fenced code blocks.
+  - Callouts/admonitions such as `> [!NOTE]`.
+  - Emoji shortcodes such as `:smile:`.
+- **YANA/Bear-inspired required note syntax and media**
+  - Hashtags: simple (`#tag`), nested (`#nested/tag`) and multi-word (`#multi word tag#`).
+  - Note links using `[[...]]`, including linking to other notes.
+  - Inline images and attachments, plus file embeds.
+- **Formatting fidelity:** Markdown is the canonical note content format. Saving or reopening a note must not silently rewrite untouched source syntax. User-invoked formatting, editing, or an explicitly defined transformation may change the source and must do so predictably.
+- This feature list defines required recognition, editing, and rendering behavior; it does not require every syntax form to have a dedicated toolbar button. The editor must expose appropriate formatting/insertion actions through its toolbar, menus, shortcuts, or completion UI.
 - Markdown is a first-class citizen across the app, which is also why **MD** is one of the export formats (see [Section 11](#11-export-options)).
 - Formatting is applied from the editor toolbar (see [Section 2.3](#23-editor-toolbar)), which keeps every formatting option within reach while writing.
+- Mermaid and other supported embedded content must render safely. Sanitization, resource URL validation, attachment storage, accessibility, and security behavior are acceptance requirements for the planned Markdown implementation; these capabilities are not present in the current editor.
 
 ### 2.2 File-like Structure for Notes
 
@@ -164,21 +194,33 @@ Around that core, the app provides an editor toolbar with all the formatting opt
 
 ### 2.3 Editor Toolbar
 
-- The editor has a **toolbar** that holds **all the formatting options**: every Markdown formatting option the app supports (such as headings, bold, italic, lists, links, and code).
+- The editor has a **toolbar** that exposes the common formatting and insertion actions the app supports, including headings, emphasis, lists, quotes, links, code, tables, media, and note-specific tags/links. Specialized features may use menus, shortcuts, or completion UI rather than a dedicated always-visible button.
 - The toolbar also holds the **lock button**, which starts the note-locking flow (see [Section 7.2](#72-lock-notes)). The lock button always lives in the **content area**, in this toolbar.
 - Formatting options and the lock button share the same toolbar.
+- **Current implementation:** there is no formatting toolbar. The planned Markdown milestone will add formatting and insertion actions; the lock control and full note-management actions are also not implemented yet.
 
 ### 2.4 The Editor Area
 
 - The **content area** shows **one note at a time**. Opening another note **closes** the note that was open. Closing a note does not change its lock state (see [Section 7.2](#72-lock-notes)).
-- The input or editor area is where the user enters the things that belong to the note: the **title**, the **user-added date** (chosen with the calendar, see [Section 8](#8-calendar--note-dates)), the **tags**, and the Markdown content itself.
-- A new note's content is empty, so the content area shows the placeholder **"Enter your note"** (see [Section 6.2](#62-creating-a-note)). When a note is locked its content is hidden; how the editor area looks in that locked state is still to be defined (see [Section 13.2](#132-still-to-define)).
+- The input or editor area is where the user enters the things that belong to the note: the **title**, the **user-added date** (chosen with the calendar, see [Section 8](#8-calendar--note-dates)), the **tags**, and the note content.
+- A new note's content is empty, so the planned note-creation flow shows the placeholder **"Enter your note"** (see [Section 6.2](#62-creating-a-note)). The current prototype instead uses **"Untitled"** for the title and **"Write your note..."** for the text area. When a note is locked its content is hidden; how the editor area looks in that locked state is still to be defined (see [Section 13.2](#132-still-to-define)).
+- **Current implementation:** the title and plain-text body are editable, and one draft is automatically saved to local storage on this device. Text is displayed as typed; Markdown syntax is not interpreted or rendered. This is not multi-note persistence. Note metadata such as the tag list and date, multi-note navigation, and cross-note wiki-link behavior remain unfinished.
 - **Tags** work as follows:
   - A tag can be **created on the spot**, or **chosen from tags that already exist**.
   - Each tag in the editor has an **x button** next to its name; pressing it removes that tag from the note.
   - Tags are shown **inside the editor only**, as a **list on top** of the note.
   - Tags are **not** shown on every note in the sidebar lists, because that would clutter the lists fast. Tags can still be filtered from the sidebar (see [Section 9.1](#91-behavior)); when filtering by tag, it is already clear which tag is being filtered.
+- The Markdown body must also recognize and render YANA's required inline hashtag syntax (`#tag`, `#nested/tag`, and `#multi word tag#`) and note links (`[[Note Title]]`). This inline syntax is mandatory in addition to the tag list UI. Whether typing an inline hashtag automatically adds a corresponding tag to the note's tag list remains to be defined (see [Section 13.2](#132-still-to-define)).
+- Notes are intended to support inline images, attachments, and embedded files in the planned Markdown editor (see [Section 2.1](#21-seamless-markdown-md)). These capabilities are not supported in the current plain-text editor.
 - **Pin** is available in the content area as well as in the sidebar (see [Section 7.1](#71-pin-notes)).
+
+### 2.5 Planned Markdown Editor: Scope and Acceptance
+
+The current baseline is a plain-text editor with no Markdown parser, renderer, toolbar, or attachment handling. The editor saves the typed title and text as one local draft; text that resembles Markdown remains ordinary text.
+
+The planned Markdown milestone will turn Markdown into the canonical note format and add seamless source editing, inline and block rendering, toolbar actions, and required media handling. The implementation must preserve untouched source, support the syntax defined in [Section 2.1](#21-seamless-markdown-md), and validate safety, accessibility, performance, and save/reload behavior. Table editing, caret/source transitions, links, math, images, and attachments require focused interaction acceptance before that milestone is complete.
+
+The Markdown features in this specification are intended product scope, not capabilities of the current plain-text baseline. Broader note management and multi-note persistence remain separate unfinished product work; see [Section 13.3](#133-remaining-acceptance-work).
 
 ---
 
@@ -190,6 +232,7 @@ The **sidebar** sits on the **left side** of the app. It shows the folder and fi
 
 - The sidebar is on the **left side** of the app.
 - Its main job is **navigation** between folders and files (notes).
+- **Current prototype presentation:** show the search field, four default-view placeholders (Notes, Pinned Notes, Locked Notes, Deleted Notes), and a folder-hierarchy placeholder. These views and the hierarchy are labeled **Coming soon** until note and folder data and navigation are implemented; the search field is presentational for now and is not wired to data. The circular **Create new note** button in the topbar is also labeled **Coming soon** until note creation is available.
 - The sidebar has **two items**:
   - The **Search bar**. Deep filtering and sorting will live under the search bar and will be defined later (see [Section 13.2](#132-still-to-define)).
   - The **Folders Tree**: the default folders followed by the user-created folders. Opening a folder reveals the notes it shows. In this document, **the notes list** means the notes shown under an opened folder in the Folders Tree. Filtering by state is already defined by the default folders (see [Section 3.2](#32-default-folders)).
@@ -360,8 +403,8 @@ Users have full **CRUD** control over their notes.
 |----------|---------|
 | **Note ID** | A unique ID generated when the note is created; it identifies the note, so duplicate titles are not a problem (see [Section 3.6](#36-default-names-duplicates-and-order)) |
 | **Title** | The note's name; used for display, search, sort, and filter. Entered in the editor area (see [Section 2.4](#24-the-editor-area)). Stays visible when the note is locked |
-| **Content** | Markdown body of the note. Empty (`""`) when the note is created, so the placeholder "Enter your note" can show. Hidden, and stored encrypted, while the note is locked (see [Section 7.2](#72-lock-notes)) |
-| **Tags** | Labels attached to a note; used for search, sort, and filter. Created on the spot or chosen from existing tags, and removed with the x button (see [Section 2.4](#24-the-editor-area)) |
+| **Content** | Canonical persisted Markdown body, including the mandatory syntax and extensions in [Section 2.1](#21-seamless-markdown-md), regardless of an editor's internal model. Empty (`""`) when the note is created, so the placeholder "Enter your note" can show. Hidden, and stored encrypted, while the note is locked (see [Section 7.2](#72-lock-notes)) |
+| **Tags** | Labels attached to a note; used for search, sort, and filter. Created on the spot or chosen from existing tags, and removed with the x button. The Markdown body also recognizes required inline hashtag forms; whether those automatically add labels is still to be defined (see [Section 2.4](#24-the-editor-area)) |
 | **Pinned state** | Whether the note is pinned (see [Section 7.1](#71-pin-notes)). Drives the Pinned Notes folder |
 | **Locked state** | Whether the note is currently locked; set to true with the toolbar lock button, and kept across reloads and sign-outs (see [Section 7.2](#72-lock-notes)). Drives the Locked Notes folder |
 | **Passcode** | The note's own six-digit numeric passcode, set when the note is locked; stored only in a securely verifiable form, never as plaintext; cannot be changed, removed or recovered (see [Section 7.2](#72-lock-notes)) |
@@ -501,7 +544,8 @@ Search, sort, and filter are available for the criteria where each operation is 
 - The app offers both **Light mode** and **Dark mode**.
 - The user can switch between the two at any time, with the **theme switch in the topbar** (see [Section 12.1](#121-the-topbar)).
 - Every screen, including the **loading states** (see [Section 5](#5-loading-states--styling)), is styled for both modes.
-- The theme follows the **system setting** (light or dark). How the manual switch interacts with it is not defined yet (see [Section 13.2](#132-still-to-define)).
+- On first use, the theme follows the **system setting** (light or dark). When the user manually toggles the theme, that choice overrides the system preference and is saved across app restarts. Until account-based settings exist, the override is stored locally on the device.
+- **Current structure milestone:** the topbar toggle is functional and follows this behavior.
 
 ---
 
@@ -568,17 +612,20 @@ Everything the author has not decided yet is recorded here, so nothing is lost. 
 - **Reordering** folders and files by hand (see [Section 3.6](#36-default-names-duplicates-and-order)).
 - **Export:** where the export control sits (see [Section 11](#11-export-options)).
 - **Empty states:** what an empty folder and a search with no results show.
-- **Theme switch:** how a manual choice with the switch interacts with the system setting, for example whether it overrides the system setting and is remembered (see [Section 10](#10-appearance-light-mode--dark-mode)).
+- **Theme preference scope after authentication:** whether the saved manual override remains device-local or becomes per-account when sign-in is implemented (see [Section 10](#10-appearance-light-mode--dark-mode)).
 - **Platform and small screens:** whether the app is web, desktop or mobile, and how the sidebar behaves on small screens. Both keyboard and touch devices are already referred to in [Section 7.2](#72-lock-notes).
 - **Tag rules:** allowed characters, letter case, duplicates, and what happens to a tag no note uses (see [Section 2.4](#24-the-editor-area)).
+- **Inline hashtag/tag relationship:** inline hashtag syntax is mandatory; decide whether each inline hashtag also creates/updates a note tag-list entry, or whether inline tags and note metadata tags remain separate (see [Sections 2.1](#21-seamless-markdown-md), [2.4](#24-the-editor-area), and [6.1](#61-what-a-note-holds)).
 - **Locked-state look:** how the editor area looks for a locked note, including where the unlock prompt appears (see [Section 7.2](#72-lock-notes)).
 - **Locked notes in search:** only titles are stated; whether tags and dates of a locked note also match is not (see [Section 9.1](#91-behavior)).
 - **Lock message wording:** the exact text of the mismatch message and the "Esc to cancel" hint (see [Section 7.2](#72-lock-notes)).
 
-### 13.3 Pending Documentation Work
+### 13.3 Remaining Acceptance Work
 
-- An **Implementation Notes** section is proposed but not written yet.
-- **Three Mermaid diagrams** are proposed but not built yet.
+- The seamless Markdown editor is planned work, not an incomplete feature of the current plain-text baseline. Implement the required syntax and media scope in [Section 2.1](#21-seamless-markdown-md), preserving Markdown as the canonical format.
+- After implementation, validate syntax coverage, caret/source transitions, toolbar actions, tables, links, math, image sizing, attachments, accessibility, safety, performance, and save/reload behavior. Compare the editing experience with Bear when hands-on access is available.
+- The current workspace still uses one local draft. Multi-note storage and navigation, live sidebar search, functional default views, and user-created folder hierarchy remain unimplemented; the current placeholders are described in [Section 3.1](#31-sidebar).
+- The proposed **Implementation Notes** section and three Mermaid documentation diagrams have not been added.
 
 ### 13.4 Future Maybes
 
@@ -698,7 +745,7 @@ Every point from the original brief, plus the specification points added afterwa
 | 100 | Search, filter, sort, selection, open folders and the open note persist per signed-in user across app restarts | [Section 3.7](#37-selection-and-bulk-actions) and [Section 9.2](#92-persisting-selected-states) |
 | 101 | Search persists as typed text and its keyword filter is applied at the same time | [Section 9.2](#92-persisting-selected-states) |
 | 102 | Permanent delete explanation, folder icon mechanism and exact-count placeholder strategy are recorded as to-dos | [Section 13.1](#131-open-problems) |
-| 103 | Implementation Notes section and three Mermaid diagrams are proposed, not built; recorded as to-dos | [Section 13.3](#133-pending-documentation-work) |
+| 103 | Implementation Notes section and three Mermaid diagrams are proposed, not built; recorded as to-dos | [Section 13.3](#133-remaining-acceptance-work) |
 | 104 | Errors (for example a failed sign-in or export) are reported through the notifications island | [Section 4.2](#42-behavior), [Section 11](#11-export-options) and [Section 12.2](#122-notifications-island) |
 | 105 | The notification island shows a count by default and keeps a newly dropped notification visible until dismissed | [Section 12.2](#122-notifications-island) |
 | 106 | Pasting into a default folder is not possible; pasting a note into a user-created folder links the existing note | [Section 3.1](#31-sidebar) and [Section 3.4](#34-how-folders-show-notes-filters-and-links) |
@@ -708,6 +755,12 @@ Every point from the original brief, plus the specification points added afterwa
 | 110 | Theme follows the system setting; deleted notes can be exported | [Section 10](#10-appearance-light-mode--dark-mode) and [Section 11](#11-export-options) |
 | 111 | Notifications and notification history are distinct parts of the island; closed notifications enter persistent history and can be deleted there | [Section 12.2](#122-notifications-island) |
 | 112 | Lock state changes manually, remains across closing/reloading/sign-out, and locking hides content immediately | [Section 7.2](#72-lock-notes) |
+| 113 | All listed CommonMark, GFM and additional extension syntax is compulsory, including raw HTML, math, frontmatter, Mermaid, callouts and emoji shortcodes | [Section 2.1](#21-seamless-markdown-md) |
+| 114 | Required YANA/Bear-inspired syntax and media: simple/nested/multi-word hashtags, `[[note links]]`, inline images/attachments and file embeds | [Sections 2.1](#21-seamless-markdown-md) and [2.4](#24-the-editor-area) |
+| 115 | Planned Markdown editor uses Markdown as canonical content and must not silently rewrite untouched syntax | [Sections 2.1](#21-seamless-markdown-md), [2.5](#25-planned-markdown-editor-scope-and-acceptance) and [6.1](#61-what-a-note-holds) |
+| 116 | All required syntax remains acceptance scope for the planned Markdown milestone; staging does not make features optional | [Sections 2.1](#21-seamless-markdown-md), [2.5](#25-planned-markdown-editor-scope-and-acceptance) and [13.3](#133-remaining-acceptance-work) |
+| 117 | CodeMirror 6, Markdown formatting toolbar, and inline source styling are planned; they are not in the current baseline | [Sections 2.1](#21-seamless-markdown-md), [2.3](#23-editor-toolbar) and [2.5](#25-planned-markdown-editor-scope-and-acceptance) |
+| 118 | Prototype persists one title and plain-text draft in local storage; this is not multi-note or cloud persistence | [Section 2.4](#24-the-editor-area) and [Section 6.1](#61-what-a-note-holds) |
 
 ---
 
@@ -721,9 +774,11 @@ This section records how loosely worded points in the original brief, and the la
 - **"Celender"** is read as **calendar**.
 - **"PDF"**, listed twice in the export formats, is read as one PDF export option.
 - **"Twitter/X"** is read as a single sign-in provider, shown as **Twitter / X**.
-- **"Seamless md"** is read as writing and formatting Markdown in one flow, with no separate edit and preview modes (see [Section 2.1](#21-seamless-markdown-md)).
+- **"Seamless md"** is read as a planned experience for writing and formatting Markdown in one flow, with no separate edit and preview modes. The target reference, reported by the user from Bear, keeps Markdown heading markers visible while styling the heading; this remains a design/acceptance target, not current behavior (see [Sections 2.1](#21-seamless-markdown-md) and [2.5](#25-planned-markdown-editor-scope-and-acceptance)).
 - **"File-like structure"** is read as an in-app hierarchy where notes are organized and navigated like files. It does not mean files on the user's operating system (see [Section 2.2](#22-file-like-structure-for-notes) and [Section 3](#3-sidebar--folder-structure)).
 - **"All the formatting options"** (toolbar) is read as every Markdown formatting option the app supports (see [Section 2.3](#23-editor-toolbar)).
+- **Required Markdown extensions.** "Common extensions" and Bear-specific syntax in the supplied complete formatting list are mandatory YANA capabilities, not optional enhancements. They may be implemented in stages, but remain part of the editor acceptance scope (see [Section 2.1](#21-seamless-markdown-md)).
+- **Markdown source of truth.** Markdown is the planned canonical persisted note format. The current plain-text editor does not interpret or render Markdown; this requirement applies to the future Markdown milestone, which should preserve untouched source (see [Sections 2.1](#21-seamless-markdown-md), [2.5](#25-planned-markdown-editor-scope-and-acceptance) and [6.1](#61-what-a-note-holds)).
 - **"User added date"** is read as a third date, chosen by the user through the calendar and separate from the automatic created and last edited dates (see [Section 8](#8-calendar--note-dates)).
 - **"Loading states with their stylings"** is read as each loading state having its own visual style (see [Section 5](#5-loading-states--styling)).
 - **"Soft deleted notes"** is read as the **Deleted Notes** folder: deleting a note moves it there instead of erasing it (see [Section 6](#6-notes-crud-operations) and [Section 3.2](#32-default-folders)).
@@ -745,7 +800,7 @@ This section records how loosely worded points in the original brief, and the la
 - **Persisted state.** The later specification clarifies that search, filters, sort, Select selection, open folders and the open note are all restored per signed-in user across app restarts (see [Section 9.2](#92-persisting-selected-states)).
 - **Pinned-note ordering.** "Pinned notes will be shown on top" means pinned notes appear above unpinned notes in user-created folders, Notes, Deleted Notes and Locked Notes. Manual reordering of folders and notes is a separate, undefined feature (see [Sections 3.6](#36-default-names-duplicates-and-order) and [7.1](#71-pin-notes)).
 - **Empty note content.** A newly created note stores an empty string (`""`); "Enter your note" is a UI placeholder, not initial note content (see [Section 6.2](#62-creating-a-note)).
-- **System theme.** The theme follows the operating system setting. How a manual topbar switch overrides or persists beyond that setting remains undecided (see [Sections 10](#10-appearance-light-mode--dark-mode) and [13.2](#132-still-to-define)).
+- **System theme and manual override.** On first use YANA follows the system setting; a user toggle overrides it and is saved locally across restarts. How this preference should be scoped after authentication (device or account) remains undecided (see [Sections 10](#10-appearance-light-mode--dark-mode) and [13.2](#132-still-to-define)).
 - **Deleted-note export.** Deleted notes are included in "any note can be exported"; the export control's location remains undecided (see [Section 11](#11-export-options)).
 - **Locked notes "visible in search (only titles)"** is read as locked notes appearing in search results with only their titles shown (see [Section 9.1](#91-behavior)).
 - **Esc and the cross button** are read as applying to every passcode prompt: setting, unlocking and the unlock before an export (see [Section 7.2](#72-lock-notes)).
