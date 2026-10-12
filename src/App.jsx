@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import MarkdownEditor from './MarkdownEditor/index.jsx'
 import './App.css'
 
 const THEME_STORAGE_KEY = 'yana-theme'
@@ -33,7 +34,7 @@ function getInitialDraft() {
       content: typeof draft.content === 'string' ? draft.content : '',
     }
   } catch (error) {
-    console.error('Unable to read the saved draft.', error)
+    console.error('Unable to read the saved Markdown draft.', error)
     return { title: '', content: '' }
   }
 }
@@ -88,8 +89,8 @@ function App() {
         window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft))
         setSaveStatus('Saved locally')
       } catch (error) {
-        console.error('Unable to save the draft locally.', error)
-        setSaveStatus('Could not save locally — copy your note before leaving')
+        console.error('Unable to save the Markdown draft locally.', error)
+        setSaveStatus('Could not save locally — copy your Markdown before leaving')
       }
     }, 400)
 
@@ -198,18 +199,11 @@ function App() {
                 onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
               />
             </div>
-            <div className="plain-text-editor">
-              <textarea
-                className="plain-text-input"
-                aria-label="Note content"
-                placeholder="Write your note..."
-                value={draft.content}
-                onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
-              />
-              <div className="plain-text-status" role="status" aria-live="polite">
-                {saveStatus}
-              </div>
-            </div>
+            <MarkdownEditor
+              value={draft.content}
+              onChange={(content) => setDraft((current) => ({ ...current, content }))}
+              status={saveStatus}
+            />
           </div>
         </section>
       </main>
