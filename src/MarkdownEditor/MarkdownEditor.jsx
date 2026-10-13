@@ -1,12 +1,19 @@
+/**
+ * Public React boundary for the Markdown editor. The parent supplies Markdown,
+ * a change callback, and status; the initial value seeds CodeMirror and later
+ * prop updates do not replace the live document. This component connects the
+ * editor host to the toolbar, mounts CodeMirror after the host exists, and
+ * destroys the editor and status timer during cleanup.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
-import { editorExtensions } from './editor/config.js'
-import MarkdownToolbar from './components/MarkdownToolbar.jsx'
+import { createEditorExtensions } from './EditorBehavior/EditorExtensions.js'
+import { MarkdownToolbar } from './Toolbar/MarkdownToolbar.jsx'
+import './Styles/MarkdownEditor.css'
 import 'katex/dist/katex.min.css'
-import './styles/index.css'
 
-export default function MarkdownEditor({ value, onChange, status }) {
+export function MarkdownEditor({ value, onChange, status }) {
   const hostRef = useRef(null)
   const viewRef = useRef(null)
   const attachmentStatusTimeoutRef = useRef(null)
@@ -25,11 +32,14 @@ export default function MarkdownEditor({ value, onChange, status }) {
     attachmentStatusTimeoutRef.current = window.setTimeout(() => setAttachmentStatus(''), 5000)
   }, [])
 
+  // EDITOR LIFECYCLE
+  // Mount after the host exists and release the CodeMirror view and status timer
+  // together so editor handlers do not outlive this React component.
   useEffect(() => {
     const view = new EditorView({
       state: EditorState.create({
         doc: initialValueRef.current,
-        extensions: editorExtensions(
+        extensions: createEditorExtensions(
           (nextValue) => onChangeRef.current(nextValue),
           reportAttachmentStatus,
         ),
@@ -45,9 +55,11 @@ export default function MarkdownEditor({ value, onChange, status }) {
     }
   }, [reportAttachmentStatus])
 
+  // TOOLBAR CONNECTION
+  // Share the editor reference, resolved status, and word count with the UI.
   return (
-    <div className="markdown-editor">
-      <div className="markdown-editor-canvas" ref={hostRef} />
+    <div className="markdownEditor">
+      <div className="markdownEditorCanvas" ref={hostRef} />
       <MarkdownToolbar
         viewRef={viewRef}
         status={attachmentStatus || status}

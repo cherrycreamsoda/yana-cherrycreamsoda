@@ -169,8 +169,7 @@ Around that core, the app provides an editor toolbar with all the formatting opt
   - Task lists with checked and unchecked states.
   - Strikethrough and bare-URL autolinking.
 - **Additional required Markdown extensions**
-  - Footnotes; inline and block math; highlighted text; subscript and superscript.
-  - YAML frontmatter.
+  - Inline and block math; highlighted text; subscript and superscript.
   - Wiki-links using `[[Note Title]]`.
   - Mermaid diagrams in fenced code blocks.
   - Callouts/admonitions such as `> [!NOTE]`.
@@ -180,11 +179,11 @@ Around that core, the app provides an editor toolbar with all the formatting opt
   - Note links using `[[...]]`, including linking to other notes.
   - Inline images and attachments, plus file embeds.
 - **Formatting fidelity:** Markdown is the canonical note content format. Saving or reopening a note must not silently rewrite untouched source syntax. User-invoked formatting, editing, or an explicitly defined transformation may change the source and must do so predictably.
-- **Current implementation:** CodeMirror 6 keeps Markdown as the editable source of truth and renders supported syntax inline or as block previews in the same editor surface. Headings retain their `#` markers; inline emphasis, strikethrough, and code delimiters are hidden when the caret is outside their markup. Markdown links display as underlined link text and reveal their source when the caret enters the link. Lists, task text, and blockquotes remain in CodeMirror's editable source layer; task checkboxes are separate controls. Standalone multiline `$$ ... $$` and `\[ ... \]` blocks render as display math. GFM tables support editing rendered cells, triple-click source access, Tab navigation, and the Enter behavior described in [Section 2.5](#25-seamless-markdown-implementation-and-validation). Uploaded images fill the editor's available content width; linked images preserve their natural size unless constrained by the available width. The toolbar exposes headings, common formatting, lists, quotes, links, images, local attachments, code, tables, and insertion actions for additional syntax. Raw HTML is sanitized before display, and resource URLs are validated. Code is organized under `src/MarkdownEditor` by UI, CodeMirror behavior, rendering, attachments, and styles. Browser interaction checks cover key workflows; exhaustive conformance and release validation remain open (see [Section 13.3](#133-remaining-acceptance-work)).
+- **Current implementation:** The CodeMirror 6 editor keeps Markdown as its source of truth and supports inline/block rendering, formatting actions, table editing, and device-local attachments. The required syntax list above remains the product target; exhaustive conformance and release validation are still open (see [Section 13.3](#133-remaining-acceptance-work)). For implementation structure and current interaction details, see the [Markdown editor guide](./src/MarkdownEditor/README.md).
 - This feature list defines required recognition, editing, and rendering behavior; it does not require every syntax form to have a dedicated toolbar button. The editor must expose appropriate formatting/insertion actions through its toolbar, menus, shortcuts, or completion UI.
 - Markdown is a first-class citizen across the app, which is also why **MD** is one of the export formats (see [Section 11](#11-export-options)).
 - Formatting is applied from the editor toolbar (see [Section 2.3](#23-editor-toolbar)), which keeps every formatting option within reach while writing.
-- Mermaid and other supported embedded content must render safely. The implementation sanitizes rendered HTML, validates links and image URLs, and stores uploaded attachment blobs in this browser's IndexedDB. These blobs are device-local and are not synchronized or backed up; attachment lifecycle, accessibility, and security behavior remain part of release validation.
+- Mermaid and other supported embedded content must render safely. Uploaded attachments are currently device-local and are not synced or backed up; attachment lifecycle, accessibility, and security behavior remain part of release validation.
 
 ### 2.2 File-like Structure for Notes
 
@@ -197,36 +196,36 @@ Around that core, the app provides an editor toolbar with all the formatting opt
 - The editor has a **toolbar** that exposes the common formatting and insertion actions the app supports, including headings, emphasis, lists, quotes, links, code, tables, media, and note-specific tags/links. Specialized features may use menus, shortcuts, or completion UI rather than a dedicated always-visible button.
 - The toolbar also holds the **lock button**, which starts the note-locking flow (see [Section 7.2](#72-lock-notes)). The lock button always lives in the **content area**, in this toolbar.
 - Formatting options and the lock button share the same toolbar.
-- **Current implementation:** the toolbar formats headings, emphasis, lists, quotes, links, images, code, and tables, exposes insertions for additional supported syntax, and inserts uploaded local attachments. The lock control and full note-management actions are not implemented yet.
+- **Current implementation:** the toolbar provides formatting and insertion actions and supports local attachments. The lock control and full note-management actions are not implemented yet. See the [Markdown editor guide](./src/MarkdownEditor/README.md) for its controls and action routing.
 
 ### 2.4 The Editor Area
 
 - The **content area** shows **one note at a time**. Opening another note **closes** the note that was open. Closing a note does not change its lock state (see [Section 7.2](#72-lock-notes)).
 - The input or editor area is where the user enters the things that belong to the note: the **title**, the **user-added date** (chosen with the calendar, see [Section 8](#8-calendar--note-dates)), the **tags**, and the Markdown content itself.
 - A new note's content is empty, so the content area shows the placeholder **"Enter your note"** (see [Section 6.2](#62-creating-a-note)). When a note is locked its content is hidden; how the editor area looks in that locked state is still to be defined (see [Section 13.2](#132-still-to-define)).
-- **Current implementation:** the title and Markdown body are editable, and one draft is automatically saved to local storage on this device. This is not multi-note persistence. The editor combines editable Markdown source with inline and block rendering; headings keep their Markdown markers visible, and supported link text renders until the caret enters the source. Note metadata such as the tag list and date, multi-note navigation, and cross-note wiki-link behavior remain unfinished.
+- **Current implementation:** the title and Markdown body are editable, and one draft is automatically saved to local storage on this device; this is not multi-note persistence. Note metadata such as the tag list and date, multi-note navigation, and cross-note wiki-link behavior remain unfinished. See the [Markdown editor guide](./src/MarkdownEditor/README.md) for editor behavior.
 - **Tags** work as follows:
   - A tag can be **created on the spot**, or **chosen from tags that already exist**.
   - Each tag in the editor has an **x button** next to its name; pressing it removes that tag from the note.
   - Tags are shown **inside the editor only**, as a **list on top** of the note.
   - Tags are **not** shown on every note in the sidebar lists, because that would clutter the lists fast. Tags can still be filtered from the sidebar (see [Section 9.1](#91-behavior)); when filtering by tag, it is already clear which tag is being filtered.
 - The Markdown body must also recognize and render YANA's required inline hashtag syntax (`#tag`, `#nested/tag`, and `#multi word tag#`) and note links (`[[Note Title]]`). This inline syntax is mandatory in addition to the tag list UI. Whether typing an inline hashtag automatically adds a corresponding tag to the note's tag list remains to be defined (see [Section 13.2](#132-still-to-define)).
-- Notes can include the required inline images and attachments and embedded files (see [Section 2.1](#21-seamless-markdown-md)). The editor supports Markdown image/link syntax and stores uploaded file blobs locally in IndexedDB. Images are previewed and file links download their local attachment. These references work only in the current browser/device and are not yet durable across account/device sync; final attachment workflows remain to be validated.
+- Notes can include the required inline images, attachments, and embedded files (see [Section 2.1](#21-seamless-markdown-md)). Uploaded files currently use device-local references; cross-device sync and final attachment workflow validation remain unfinished. See the [Markdown editor guide](./src/MarkdownEditor/README.md) for current implementation details.
 - **Pin** is available in the content area as well as in the sidebar (see [Section 7.1](#71-pin-notes)).
 
 ### 2.5 Seamless Markdown: Implementation and Validation
 
-The current editor uses CodeMirror 6 with Markdown as its canonical editable document. It combines CodeMirror's syntax tree and inline decorations with state-field block widgets; there is no separate preview pane or edit/preview toggle. Untouched source is not serialized through a rich-text document model. Toolbar actions and direct edits change the Markdown document.
+The prototype uses CodeMirror 6 with Markdown as its canonical editable
+document; it has no separate preview pane or edit/preview toggle. The editor
+guide documents its implementation and current interactions, including
+source-preserving rendering, table editing, attachments, and safety boundaries
+([Markdown editor guide](./src/MarkdownEditor/README.md)).
 
-| Area | Current behavior |
-|------|------------------|
-| Inline source and formatting | Headings retain their markers. Inline emphasis, strikethrough, code, and supported Markdown links render when the caret is outside the syntax and reveal editable source when entered. |
-| Block rendering | Supported block syntax renders in place. Standalone multiline `$$ ... $$` and `\[ ... \]` math blocks use block decorations; fenced code remains code, including fences containing math delimiters. |
-| Tables | Rendered GFM cells are editable and commit changes to source on blur. Triple-click reveals Markdown source. Tab navigates rendered cells; source mode supports table-cell navigation and row creation. At the source table end, Enter opens a temporary line and a second Enter restores the preview without retaining the extra newline. |
-| Images and attachments | Linked images preserve natural dimensions while fitting the available width. Images uploaded into the editor fill its available content width. Uploaded files are stored in browser IndexedDB and referenced by app-specific Markdown URLs; they are not synced or backed up. |
-| Safety and local saving | Rendered HTML is sanitized, resource URLs are validated, and the title plus Markdown body are saved as one local draft. This is not multi-note or cloud persistence. |
-
-This implementation is the editor for the current prototype. Browser interaction checks have covered toolbar/source behavior, table editing, list Enter behavior, links, local and remote images, and inline/display math. These checks do not amount to exhaustive CommonMark/GFM conformance, accessibility, performance, or attachment-lifecycle acceptance. The required syntax and media scope in [Section 2.1](#21-seamless-markdown-md) remains the product target. See [Section 13.3](#133-remaining-acceptance-work) for broader validation work.
+Browser checks cover key editor workflows, but do not establish exhaustive
+CommonMark/GFM conformance, accessibility, performance, or attachment-lifecycle
+acceptance. The required syntax and media scope in
+[Section 2.1](#21-seamless-markdown-md) remains the product target; see
+[Section 13.3](#133-remaining-acceptance-work) for outstanding validation.
 
 ---
 
@@ -630,6 +629,12 @@ Everything the author has not decided yet is recorded here, so nothing is lost. 
 
 - The editor implementation for the current prototype is in place. Complete broader acceptance against every required syntax form in [Section 2.1](#21-seamless-markdown-md), including accessibility, safety, attachment lifecycle, and repeated save/reload integrity; the mandatory product scope is unchanged.
 - Exercise larger notes and less common syntax combinations, and compare the inline editing experience with Bear when hands-on access is available. These are validation tasks, not open editor-framework selection.
+- Fix and retest Markdown that currently fails the supplied syntax sample:
+  - Reference-style links and angle-bracket URL/email autolinks should render and activate as links in the editor, rather than remaining literal source.
+  - Inline raw HTML such as `<mark>`, `<kbd>`, and `<sub>` should render safely in the editor; block-level `<details>` already renders.
+  - Add a complete emoji feature: expand shortcode coverage (including `:white_check_mark:`) and add an emoji insertion/picker experience. Review the user's [emoji research](https://claude.ai/share/8f0618bc-0748-49f9-bf01-f81da1b5640f) before choosing the catalog and interaction.
+  - Decide whether definition lists should be supported; the tested `Term` / `: Definition` form currently remains plain text.
+  - Validate language-aware syntax highlighting for fenced code; code blocks render with language classes, but rendered previews did not show colored syntax tokens in the test.
 - The current workspace still uses one local draft. Multi-note storage and navigation, live sidebar search, functional default views, and user-created folder hierarchy remain unimplemented; the current placeholders are described in [Section 3.1](#31-sidebar).
 - The proposed **Implementation Notes** section and three Mermaid documentation diagrams have not been added.
 
@@ -761,7 +766,7 @@ Every point from the original brief, plus the specification points added afterwa
 | 110 | Theme follows the system setting; deleted notes can be exported | [Section 10](#10-appearance-light-mode--dark-mode) and [Section 11](#11-export-options) |
 | 111 | Notifications and notification history are distinct parts of the island; closed notifications enter persistent history and can be deleted there | [Section 12.2](#122-notifications-island) |
 | 112 | Lock state changes manually, remains across closing/reloading/sign-out, and locking hides content immediately | [Section 7.2](#72-lock-notes) |
-| 113 | All listed CommonMark, GFM and additional extension syntax is compulsory, including raw HTML, math, frontmatter, Mermaid, callouts and emoji shortcodes | [Section 2.1](#21-seamless-markdown-md) |
+| 113 | All listed CommonMark, GFM and additional extension syntax is compulsory, including raw HTML, math, Mermaid, callouts and emoji shortcodes | [Section 2.1](#21-seamless-markdown-md) |
 | 114 | Required YANA/Bear-inspired syntax and media: simple/nested/multi-word hashtags, `[[note links]]`, inline images/attachments and file embeds | [Sections 2.1](#21-seamless-markdown-md) and [2.4](#24-the-editor-area) |
 | 115 | Markdown is the canonical persisted content; untouched syntax must not be silently rewritten | [Sections 2.1](#21-seamless-markdown-md), [2.5](#25-seamless-markdown-implementation-and-validation) and [6.1](#61-what-a-note-holds) |
 | 116 | All required syntax remains acceptance scope; implementing it in stages does not make features optional | [Sections 2.1](#21-seamless-markdown-md), [2.5](#25-seamless-markdown-implementation-and-validation) and [13.3](#133-remaining-acceptance-work) |

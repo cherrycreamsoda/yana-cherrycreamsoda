@@ -1,17 +1,59 @@
+/**
+ * Assembles CodeMirror add-ons and event handlers for Markdown editing,
+ * selection styling, custom syntax previews, shortcuts, paste/drop attachments,
+ * and table navigation. Extensions are plug-ins that add editor behavior or
+ * appearance; keymaps assign commands to keys. FormattingActionRouter,
+ * AttachmentActions, InlineSyntaxDecorations, RenderedMarkdown, and TableEditing
+ * provide the connected behavior; this module wires them together.
+ */
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
 import { markdown, markdownKeymap, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
-import { bracketMatching, defaultHighlightStyle, foldKeymap, indentOnInput, syntaxHighlighting } from '@codemirror/language'
+import {
+  bracketMatching,
+  defaultHighlightStyle,
+  foldKeymap,
+  HighlightStyle,
+  indentOnInput,
+  syntaxHighlighting,
+} from '@codemirror/language'
 import { EditorState, Prec } from '@codemirror/state'
-import { EditorView, drawSelection, highlightActiveLine, keymap, placeholder } from '@codemirror/view'
-import { insertAttachments } from '../attachments/storage.js'
-import { focusTracker, markdownStyles, renderedMarkdownField, yanaSyntax } from './decorations.js'
-import { navigateTableCell } from './tableNavigation.js'
-import { tableSourceEnterEffect, tableSourceModeEffect } from './tableMode.js'
-import { runToolbarAction, insertBlockWithSelection } from './actions.js'
+import { drawSelection, EditorView, highlightActiveLine, keymap, placeholder } from '@codemirror/view'
+import { tags } from '@lezer/highlight'
+import { insertAttachments } from '../Attachments/AttachmentActions.js'
+import { runToolbarAction } from '../Formatting/FormattingActionRouter.js'
+import { renderedMarkdownField, focusTracker } from '../MarkdownRendering/RenderedMarkdown.js'
+import { yanaSyntax } from '../MarkdownRendering/InlineSyntaxDecorations.js'
+import {
+  navigateTableCell,
+  revealRenderedTableOnArrow,
+  tableSourceEnterEffect,
+  tableSourceModeEffect,
+} from '../MarkdownRendering/TableEditing.js'
 
-export function editorTheme() {
+// MARKDOWN SOURCE APPEARANCE
+// These syntax colors style editable Markdown; custom source treatments are
+// provided separately by yanaSyntax.
+const markdownStyles = HighlightStyle.define([
+  { tag: tags.heading1, color: 'var(--color-text)', fontSize: '1.7em', fontWeight: '700' },
+  { tag: tags.heading2, color: 'var(--color-text)', fontSize: '1.42em', fontWeight: '650' },
+  { tag: tags.heading3, color: 'var(--color-text)', fontSize: '1.2em', fontWeight: '650' },
+  { tag: tags.heading, color: 'var(--color-text)', fontWeight: '600' },
+  { tag: tags.strong, color: 'var(--color-text)', fontWeight: '700' },
+  { tag: tags.emphasis, color: 'var(--color-text)', fontStyle: 'italic' },
+  { tag: tags.strikethrough, color: 'var(--color-muted)', textDecoration: 'line-through' },
+  { tag: tags.link, color: 'var(--color-accent)', textDecoration: 'underline' },
+  { tag: tags.url, color: 'var(--color-accent)' },
+  { tag: tags.monospace, color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' },
+  { tag: tags.quote, color: 'var(--color-muted)', fontStyle: 'italic' },
+  { tag: tags.contentSeparator, color: 'var(--color-faint)' },
+  { tag: tags.processingInstruction, color: 'var(--color-muted)' },
+])
+
+// VISUAL THEME
+// Keeps CodeMirror's surface aligned with the surrounding app's theme tokens.
+function editorTheme() {
   return EditorView.theme({
     '&': {
       height: '100%',
@@ -56,7 +98,8 @@ export function editorTheme() {
     },
   }, { dark: document.documentElement.dataset.theme === 'dark' })
 }
-
+// ACTION SHORTCUTS
+// Let native selection changes finish before applying a formatting command.
 function runToolbarShortcut(view, action) {
   const selection = view.state.selection
   window.setTimeout(() => {
@@ -65,8 +108,12 @@ function runToolbarShortcut(view, action) {
   return true
 }
 
-export function editorExtensions(onChange, onAttachmentStatus) {
+// EXTENSION ASSEMBLY
+// Connects rendering state, language support, file events, shortcuts, and
+// table interactions to the live editor.
+export function createEditorExtensions(onChange, onAttachmentStatus) {
   return [
+
     renderedMarkdownField,
     focusTracker,
     history(),
@@ -85,25 +132,28 @@ export function editorExtensions(onChange, onAttachmentStatus) {
     EditorView.contentAttributes.of({ 'aria-label': 'Markdown note content' }),
     EditorView.domEventHandlers({
       paste(view, event) {
+
         const files = [...(event.clipboardData?.files ?? [])]
         if (!files.length) return false
         event.preventDefault()
-        insertAttachments(view, files, onAttachmentStatus, insertBlockWithSelection)
+        insertAttachments(view, files, onAttachmentStatus)
         return true
       },
       drop(view, event) {
+
         const files = [...(event.dataTransfer?.files ?? [])]
         if (!files.length) return false
         event.preventDefault()
         const position = view.posAtCoords({ x: event.clientX, y: event.clientY })
         if (position !== null) view.dispatch({ selection: { anchor: position } })
-        insertAttachments(view, files, onAttachmentStatus, insertBlockWithSelection)
+        insertAttachments(view, files, onAttachmentStatus)
         return true
       },
     }),
     EditorView.updateListener.of((update) => {
       if (update.docChanged) onChange(update.state.doc.toString())
     }),
+
     keymap.of([
       { key: 'Mod-b', run: (view) => runToolbarShortcut(view, 'bold') },
       { key: 'Mod-i', run: (view) => runToolbarShortcut(view, 'italic') },
@@ -117,9 +167,14 @@ export function editorExtensions(onChange, onAttachmentStatus) {
       indentWithTab,
     ]),
     Prec.highest(keymap.of([
+      ...['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].map((key) => ({
+        key,
+        run: (view) => revealRenderedTableOnArrow(view, key, view.state.field(renderedMarkdownField).ranges),
+      })),
       {
         key: 'Enter',
         run(view) {
+
           const { sourceTable, sourceTablePendingEnter } = view.state.field(renderedMarkdownField)
           if (!view.state.selection.main.empty) return false
 
@@ -134,6 +189,7 @@ export function editorExtensions(onChange, onAttachmentStatus) {
           }
 
           if (!sourceTable) return false
+
           if (
             sourceTablePendingEnter
             && cursorLine.text === ''
@@ -162,6 +218,7 @@ export function editorExtensions(onChange, onAttachmentStatus) {
           return true
         },
       },
+
       { key: 'Tab', run: (view) => navigateTableCell(view) },
       { key: 'Shift-Tab', run: (view) => navigateTableCell(view, true) },
     ])),

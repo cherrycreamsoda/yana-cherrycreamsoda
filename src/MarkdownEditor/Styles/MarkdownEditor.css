@@ -1,0 +1,672 @@
+/*
+ * One stylesheet for the editor frame, source syntax, formatting, widgets,
+ * rendered previews, tables, toolbar, and responsive states. MarkdownEditor,
+ * MarkdownToolbar, CodeMirror widgets, and preview HTML apply the class names
+ * styled here.
+ */
+
+/* ---------- Editor frame and thin, unobtrusive scrollbar ---------- */
+.markdownEditor {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  background: var(--color-surface);
+}
+
+.markdownEditorCanvas {
+  width: min(100%, var(--editor-canvas-max-width, 880px));
+  min-width: 0;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 var(--editor-canvas-inline-padding, clamp(24px, 7vw, 90px)) 24px;
+}
+
+.markdownEditorCanvas > .cm-editor {
+  height: 100%;
+}
+
+.markdownEditorCanvas .cm-scroller {
+  scrollbar-color: var(--color-faint) transparent;
+  scrollbar-width: thin;
+}
+
+.markdownEditorCanvas .cm-scroller::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.markdownEditorCanvas .cm-scroller::-webkit-scrollbar-track,
+.markdownEditorCanvas .cm-scroller::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.markdownEditorCanvas .cm-scroller::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--color-faint);
+  background-clip: padding-box;
+}
+
+.markdownEditorCanvas .cm-scroller::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* ---------- Inline YANA syntax markers ---------- */
+.cmYanaWikiLink {
+  border-bottom: 1px dashed var(--color-accent);
+  border-radius: 2px;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.cmYanaTag {
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  font-size: 0.92em;
+}
+
+.cmYanaMath,
+.cmYanaSpecialFence {
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+}
+
+.cmYanaInlineCode {
+  padding: 0.12em 0.32em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-hover) 80%, transparent);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.cmYanaHighlight {
+  border-radius: 2px;
+  background: color-mix(in srgb, #f3d46b 45%, transparent);
+  color: var(--color-text);
+}
+
+.cmYanaHighlightRendered {
+  background: #ff0;
+  color: #000;
+}
+
+.cmYanaEmoji {
+  border-bottom: 1px dotted var(--color-faint);
+  color: var(--color-muted);
+}
+
+.cmYanaCallout {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* ---------- Inline rendered widgets ---------- */
+.cmYanaRenderedMath {
+  color: var(--color-text);
+}
+
+.cmYanaDisplayMath {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.cmYanaInlineLinkWidget a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cmYanaRenderedEmoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.cmYanaImageWidget {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.cmYanaImageWidget img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 60vh;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.cmYanaImageAttachment {
+  display: block;
+  width: 100%;
+}
+
+.cmYanaImageAttachment img {
+  width: 100%;
+  max-height: none;
+}
+
+.cmYanaHtmlBlock {
+  max-width: 100%;
+  overflow: auto;
+}
+
+.cmYanaMermaid {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  margin: 18px 0;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-canvas);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.cmYanaMermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.cmYanaMermaidError {
+  border-color: color-mix(in srgb, #c44 50%, var(--color-border));
+  color: #c44;
+}
+
+.cmYanaTaskCheckbox {
+  width: 15px;
+  height: 15px;
+  margin: 0 4px 0 0;
+  accent-color: var(--color-accent);
+  vertical-align: -2px;
+  cursor: pointer;
+}
+
+/* ---------- MarkdownIt inline rendering ---------- */
+.cmYanaSubSup {
+  color: var(--color-text);
+}
+
+.mdYanaHashtag,
+.mdYanaWikiLink {
+  border-radius: 4px;
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mdYanaHashtag {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  padding: 1px 4px;
+}
+
+.mdYanaWikiLink {
+  border-bottom: 1px dashed var(--color-accent);
+}
+
+.mdYanaCallout {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.mdYanaCallout p {
+  margin: 0.35em 0;
+}
+
+.mdYanaCallout::before {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-accent);
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.mdYanaCalloutNote::before { content: "Note"; }
+.mdYanaCalloutTip::before { content: "Tip"; }
+.mdYanaCalloutImportant::before { content: "Important"; }
+.mdYanaCalloutWarning::before { content: "Warning"; }
+.mdYanaCalloutCaution::before { content: "Caution"; }
+
+/* ---------- Shared rendered-block rhythm and typography ---------- */
+.cmYanaRenderedBlock {
+  width: 100%;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.cmYanaRenderedBlock > :first-child {
+  margin-top: 0;
+}
+
+.cmYanaRenderedBlock > :last-child {
+  margin-bottom: 0;
+}
+
+.cmYanaRenderedBlock h1,
+.cmYanaRenderedBlock h2,
+.cmYanaRenderedBlock h3,
+.cmYanaRenderedBlock h4,
+.cmYanaRenderedBlock h5,
+.cmYanaRenderedBlock h6 {
+  color: var(--color-text);
+  letter-spacing: -0.035em;
+  line-height: 1.3;
+}
+
+.cmYanaRenderedBlock h1 { font-size: 1.9em; }
+.cmYanaRenderedBlock h2 { font-size: 1.6em; }
+.cmYanaRenderedBlock h3 { font-size: 1.35em; }
+.cmYanaRenderedBlock h4 { font-size: 1.15em; }
+.cmYanaRenderedBlock p,
+.cmYanaRenderedBlock li {
+  line-height: inherit;
+}
+
+.cmYanaRenderedBlock blockquote {
+  margin: 12px 0;
+  padding: 2px 0 2px 18px;
+  border-left: 3px solid var(--color-border);
+  color: var(--color-muted);
+}
+
+/* Tables stay full-width and use the same cell DOM for keyboard and mouse editing. */
+.cmYanaRenderedBlock table {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.cmYanaRenderedBlock th,
+.cmYanaRenderedBlock td {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+}
+
+.cmYanaRenderedBlock th[contenteditable="true"],
+.cmYanaRenderedBlock td[contenteditable="true"] {
+  cursor: text;
+  outline: none;
+}
+
+.cmYanaRenderedBlock th[contenteditable="true"]:focus,
+.cmYanaRenderedBlock td[contenteditable="true"]:focus {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.cmYanaRenderedBlock th {
+  background: var(--color-hover);
+  font-weight: 650;
+}
+
+.cmYanaRenderedBlock tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--color-hover) 45%, transparent);
+}
+
+.cmYanaRenderedBlock hr {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Linked images keep intrinsic width; local uploaded images fill the content column. */
+.cmYanaRenderedBlock img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 60vh;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.cmYanaRenderedBlock img[src^="yana-attachment:"] {
+  width: 100%;
+  max-height: none;
+}
+
+/* ---------- Code, task-list and math previews ---------- */
+.cmYanaRenderedBlock a {
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.cmYanaRenderedBlock pre {
+  overflow-x: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-canvas);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+.cmYanaRenderedBlock code {
+  padding: 0.12em 0.32em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-hover) 80%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.cmYanaRenderedBlock pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.cmYanaRenderedBlock .contains-task-list {
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+.cmYanaRenderedBlock input[type="checkbox"] {
+  margin-right: 7px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.cmYanaRenderedBlock .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ---------- Scrollable formatting controls ---------- */
+.mdToolbar {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 22px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.mdToolbarScroll {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mdToolbarScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mdToolbarButton,
+.mdToolbarMenu > summary,
+.mdHeadingPicker select {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.mdToolbarButton:hover,
+.mdToolbarMenu > summary:hover,
+.mdToolbarMenu[open] > summary,
+.mdHeadingPicker select:hover {
+  border-color: var(--color-border);
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.mdToolbarButton:focus-visible,
+.mdToolbarMenu > summary:focus-visible,
+.mdHeadingPicker select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.mdToolbarButton strong {
+  font-size: 15px;
+}
+
+.mdToolbarButton em {
+  font-family: Georgia, serif;
+  font-size: 16px;
+}
+
+.mdToolbarButton code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.mdHeadingPicker {
+  flex: 0 0 auto;
+}
+
+.mdHeadingPicker select {
+  width: 112px;
+  padding: 0 8px;
+  outline: none;
+}
+
+.mdHeadingPicker select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.mdToolbarDivider {
+  width: 1px;
+  height: 22px;
+  flex: 0 0 auto;
+  margin: 0 5px;
+  background: var(--color-border);
+}
+
+.mdToolbarMenu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.mdToolbarMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mdToolbarMenu > summary span {
+  color: var(--color-faint);
+  font-size: 14px;
+}
+
+.mdToolbarMenuPanel {
+  position: fixed;
+  right: 16px;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: grid;
+  width: max-content;
+  max-height: min(64vh, 420px);
+  gap: 3px;
+  overflow-y: auto;
+  padding: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 34px rgb(30 24 18 / 14%);
+}
+
+.mdToolbarMenuPanel .mdToolbarButton {
+  justify-content: flex-start;
+  padding: 0 11px;
+}
+
+/* ---------- Save state, word count and shortcut help ---------- */
+.mdToolbarHint {
+  flex: 0 0 auto;
+  color: var(--color-faint);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mdToolbarMeta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 11px;
+}
+
+.mdToolbarHint span {
+  font-size: 13px;
+}
+
+.mdToolbarHelp {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mdToolbarInfo {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.mdToolbarInfo span {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mdToolbarInfo:hover,
+.mdToolbarInfo[aria-expanded="true"] {
+  border-color: var(--color-focus);
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.mdToolbarInfo:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.mdToolbarShortcuts {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 11px);
+  z-index: 6;
+  width: 250px;
+  max-width: calc(100vw - 24px);
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 34px rgb(30 24 18 / 16%);
+  color: var(--color-text);
+}
+
+.mdToolbarShortcuts h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.mdToolbarShortcuts dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.mdToolbarShortcuts dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.mdToolbarShortcuts dt {
+  color: var(--color-muted);
+}
+
+.mdToolbarShortcuts dd {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* Keep file inputs accessible to assistive technology without taking visual space. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* The toolbar stays usable when the editor is narrower than its controls. */
+@media (max-width: 700px) {
+  .markdownEditorCanvas {
+    padding: 32px var(--editor-canvas-inline-padding, 24px) 18px;
+  }
+
+  .mdToolbar {
+    min-height: 54px;
+    padding-right: 10px;
+    padding-left: 12px;
+  }
+
+  .mdToolbarMeta {
+    gap: 8px;
+  }
+
+  .mdToolbarHint {
+    font-size: 10px;
+  }
+}

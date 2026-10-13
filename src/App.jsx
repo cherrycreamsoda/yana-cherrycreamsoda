@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import MarkdownEditor from './MarkdownEditor/index.jsx'
+import { MarkdownEditor } from './MarkdownEditor/MarkdownEditor.jsx'
 import './App.css'
 
 const THEME_STORAGE_KEY = 'yana-theme'
